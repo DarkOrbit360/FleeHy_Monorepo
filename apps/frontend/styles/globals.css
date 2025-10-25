@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 🌊 Base Page Setup */
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff; /* Neutral base for light sections */
+  color: #111827; /* Tailwind gray-900 */
+  scroll-behavior: smooth;
+  overflow-x: hidden; /* Prevent horizontal scroll on mobile */
+}
+
+/* ✨ Fade-in upward animation */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 1.4s ease-out;
+}
+
+/* 🌈 Smooth transitions for theme & color changes */
+body {
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+/* 💫 Subtle glow on hover for interactive buttons */
+button:hover {
+  box-shadow: 0 0 12px rgba(0, 179, 173, 0.6);
+  transition: all 0.3s ease-in-out;
+}
+
+/* 🦶 Footer hover effect */
+footer a:hover {
+  text-decoration: underline;
+  color: #aef2ec;
+  text-shadow: 0 0 6px rgba(174, 242, 236, 0.6);
+}
+
+/* 🧩 Universal box model + media */
+* {
+  box-sizing: border-box;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 📱 Mobile Responsiveness Tweaks */
+@media (max-width: 640px) {
+  form {
+    border-radius: 1.5rem !important;
+    padding: 1.5rem !important;
+  }
+
+  input, button {
+    font-size: 0.95rem !important;
+  }
+
+  h1, h2 {
+    font-size: 1.9rem !important;
+    line-height: 2.3rem !important;
+  }
+}
