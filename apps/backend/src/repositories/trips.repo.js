@@ -1,5 +1,5 @@
 
-import prisma from '../lib/db.js';
+import prisma from '../../lib/prismaClient.js';
 
 export function findMany({ destination }) {
   return prisma.trip.findMany({
