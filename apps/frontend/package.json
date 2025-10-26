@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@prisma/client": "5.8.0",
-    "@supabase/supabase-js": "^2.75.1",
+    "@supabase/supabase-js": "^2.76.1",
     "autoprefixer": "^10.4.0",
     "bcrypt": "^5.1.0",
     "next": "14.0.0",

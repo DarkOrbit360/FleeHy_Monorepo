@@ -7,59 +7,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-//
-// USER MODEL — for both HOSTS and TRAVELERS
-//
 model User {
-  id             Int              @id @default(autoincrement())
-  email          String           @unique
-  name           String?
-  role           Role             @default(TRAVELER)
-  createdAt      DateTime         @default(now())
-  hostProfile    HostVerification?
-  trips          Trip[]           @relation("UserTrips")
+  id          Int               @id @default(autoincrement())
+  name        String?
+  email       String            @unique
+  role        Role              @default(TRAVELER)
+  createdAt   DateTime          @default(now())
+  hostProfile HostVerification?
+  trips       Trip[]            @relation("UserTrips")
+}
+
+model HostVerification {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @unique
+  isCompany      Boolean
+  firstName      String
+  lastName       String
+  phone          String
+  travelBrand    String
+  about          String?
+  website        String?
+  socialLinks    String?
+  registrationId String?
+  verified       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id])
+}
+
+model Trip {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  destination String
+  price       Float
+  duration    Int
+  description String?
+  createdAt   DateTime @default(now())
+  bannerImage String?
+  gallery     String[]
+  hostId      Int
+  itinerary   Json?
+  host        User     @relation("UserTrips", fields: [hostId], references: [id])
 }
 
 enum Role {
   HOST
   TRAVELER
-}
-
-//
-// HOST VERIFICATION — becomes active once user completes the verification form
-//
-model HostVerification {
-  id              Int       @id @default(autoincrement())
-  user            User      @relation(fields: [userId], references: [id])
-  userId          Int       @unique
-  isCompany       Boolean   // true = company, false = individual
-  firstName       String
-  lastName        String
-  phone           String
-  travelBrand     String    // company or host display name
-  about           String?
-  website         String?
-  socialLinks     String?   // can store JSON of social links
-  registrationId  String?   // if company
-  verified        Boolean   @default(true) // auto approved
-  createdAt       DateTime  @default(now())
-}
-
-//
-// TRIPS — Created by HOSTS
-//
-model Trip {
-  id            Int       @id @default(autoincrement())
-  title         String
-  slug          String    @unique
-  destination   String
-  price         Float
-  duration      Int       // days
-  description   String?
-  bannerImage   String?
-  gallery       String[]  // up to 5 images (URLs from Supabase storage)
-  itinerary     Json?     // structured day-wise itinerary
-  createdAt     DateTime  @default(now())
-  host          User      @relation("UserTrips", fields: [hostId], references: [id])
-  hostId        Int
 }
