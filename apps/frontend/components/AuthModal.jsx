@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function AuthModal({ onClose }) {
+export default function AuthModal({ onClose, mode = "login" }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState("login"); // or 'signup'
