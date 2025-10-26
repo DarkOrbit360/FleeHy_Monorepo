@@ -6,7 +6,8 @@ export function findMany({ destination }) {
     where: destination ? { destination: { contains: destination, mode: 'insensitive' } } : undefined,
     orderBy: { createdAt: 'desc' },
     take: 50,
-    include: { planner: true }
+    include: { host: true }, // ✅ corrected
+
   });
 }
 
