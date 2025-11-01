@@ -1,14 +1,15 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import UserAvatar from "@/components/UserAvatar";
-import AuthModal from "@/components/AuthModal"; // 👈 Added back
+import AuthModal from "@/components/AuthModal";
 
 export default function Navbar() {
   const [user, setUser] = useState(null);
   const [dropdown, setDropdown] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false); // 👈 Added
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const dropdownRef = useRef(null); // 👈 reference to dropdown
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -17,12 +18,25 @@ export default function Navbar() {
     };
     fetchUser();
 
-    // Listen for auth state changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
     });
 
     return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // 👇 Close dropdown if click happens outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -36,7 +50,10 @@ export default function Navbar() {
     <>
       <nav className="fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-[#008b9a] via-[#007a8d] to-[#006874] text-white shadow-md">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
-          <Link href="/" className="text-3xl font-extrabold tracking-tight text-white">
+          <Link
+            href="/"
+            className="text-3xl font-extrabold tracking-tight text-white"
+          >
             FleeHy
           </Link>
 
@@ -48,7 +65,6 @@ export default function Navbar() {
               >
                 Host
               </Link>
-              {/* 👇 Changed from Link to button for popup */}
               <button
                 onClick={() => setShowAuthModal(true)}
                 className="hover:text-[#32d1c0] transition"
@@ -57,7 +73,7 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdown(!dropdown)}
                 className="focus:outline-none"
@@ -66,7 +82,7 @@ export default function Navbar() {
               </button>
 
               {dropdown && (
-                <div className="absolute right-0 mt-3 w-40 bg-white text-gray-700 rounded-lg shadow-lg">
+                <div className="absolute right-0 mt-3 w-40 bg-white text-gray-700 rounded-lg shadow-lg animate-fadeIn">
                   <Link
                     href="/dashboard"
                     className="block px-4 py-2 hover:bg-gray-100 rounded-t-lg"
@@ -87,12 +103,24 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* 👇 Add the AuthModal here so it overlays above everything */}
-      {showAuthModal && (
-        <AuthModal
-          onClose={() => setShowAuthModal(false)}
-        />
-      )}
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+
+      {/* Optional subtle fade-in animation for dropdown */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-out;
+        }
+      `}</style>
     </>
   );
 }
