@@ -9,23 +9,64 @@ export default function AuthModal({ onClose }) {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState("");
 
-  const handleAuth = async () => {
-    setError(null);
-    setMessage("");
+  const validatePassword = (password) => {
+  const minLength = /.{8,}/;
+  const uppercase = /[A-Z]/;
+  const number = /[0-9]/;
+  const specialChar = /[!@#$%^&*(),.?":{}|<>]/;
+  const commonPatterns = /(1234|password|qwerty|abcd|1111)/i;
 
-    if (mode === "login") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setError(error.message);
-      else {
-        setMessage("Login successful!");
-        onClose();
-      }
-    } else {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) setError(error.message);
-      else setMessage("Signup successful! Please log in.");
+  if (!minLength.test(password))
+    return "Password must be at least 8 characters long.";
+  if (!uppercase.test(password))
+    return "Password must include at least one uppercase letter.";
+  if (!number.test(password))
+    return "Password must include at least one number.";
+  if (!specialChar.test(password))
+    return "Password must include at least one special character.";
+  if (commonPatterns.test(password))
+    return "Password is too common or predictable.";
+
+  return null;
+};
+
+const handleAuth = async () => {
+  setError(null);
+  setMessage("");
+
+  // Check password validity (only during signup)
+  if (mode === "signup") {
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
     }
-  };
+  }
+
+  if (mode === "login") {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) setError(error.message);
+    else {
+      setMessage("Login successful!");
+      onClose();
+    }
+  } else {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) setError(error.message);
+    else {
+      setMessage(
+        "Signup successful! Please verify your email before logging in."
+      );
+    }
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
