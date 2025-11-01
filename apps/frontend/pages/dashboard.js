@@ -1,51 +1,131 @@
+"use client";
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
-import Layout from "../components/Layout";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/router";
 
 export default function Dashboard() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
-  const [role, setRole] = useState("TRAVELER");
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("account");
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getUser();
-      const u = data?.user || null;
-      setUser(u);
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data?.user) router.push("/");
+      else setUser(data.user);
+    };
+    getUser();
+  }, [router]);
 
-      // Try fetch role from your Prisma User table if available
-      if (u?.email) {
-        const { data: row } = await supabase
-          .from("User")
-          .select("role")
-          .eq("email", u.email)
-          .maybeSingle();
-        if (row?.role) setRole(row.role);
-      }
-      setLoading(false);
-    })();
-  }, []);
+  const handleDeleteAccount = async () => {
+    alert("Account deletion is disabled in demo mode.");
+  };
 
-  if (loading) return <Layout title="Dashboard"><p>Loading...</p></Layout>;
-  if (!user) return <Layout title="Dashboard"><p>Please log in to see your dashboard.</p></Layout>;
-
-  const isHost = role === "HOST";
+  if (!user)
+    return (
+      <div className="h-screen flex items-center justify-center text-lg text-[#007a8d]">
+        Loading dashboard...
+      </div>
+    );
 
   return (
-    <Layout title="Dashboard">
-      <h1 className="text-2xl font-semibold mb-4">Welcome{user?.email ? `, ${user.email}` : ""}</h1>
+    <div className="pt-20 min-h-screen flex flex-col md:flex-row bg-gray-50">
+      {/* Sidebar */}
+      <aside className="md:w-1/4 w-full bg-white p-6 shadow-lg rounded-r-3xl">
+        <div className="flex flex-col items-center text-center">
+          <div className="w-20 h-20 flex items-center justify-center rounded-full bg-[#007a8d] text-white text-3xl font-bold mb-3">
+            {user.email[0].toUpperCase()}
+          </div>
+          <p className="text-lg font-semibold">Hi there!</p>
+          <p className="text-sm text-gray-600 mb-4">{user.email}</p>
+        </div>
 
-      {isHost ? (
-        <div className="space-y-4">
-          <p className="text-gray-700">You are a <strong>HOST</strong>. Create and manage your trips here.</p>
-          <a href="/planner" className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Create a Trip</a>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={() => setActiveTab("account")}
+            className={`p-2 rounded-lg text-left ${
+              activeTab === "account" ? "bg-[#e0f7ff]" : "hover:bg-gray-100"
+            }`}
+          >
+            Account Details
+          </button>
+          <button
+            onClick={() => setActiveTab("hosting")}
+            className={`p-2 rounded-lg text-left ${
+              activeTab === "hosting" ? "bg-[#e0f7ff]" : "hover:bg-gray-100"
+            }`}
+          >
+            Hosting Dashboard
+          </button>
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              router.push("/");
+            }}
+            className="p-2 mt-4 bg-[#007a8d] text-white rounded-lg hover:bg-[#006874]"
+          >
+            Logout
+          </button>
         </div>
-      ) : (
-        <div className="space-y-4">
-          <p className="text-gray-700">You are currently a <strong>Traveler</strong>.</p>
-          <a href="/host-verification" className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Become a Host</a>
-        </div>
-      )}
-    </Layout>
+      </aside>
+
+      {/* Main Section */}
+      <main className="flex-1 p-8">
+        {activeTab === "account" && (
+          <div>
+            <h2 className="text-2xl font-bold text-[#007a8d] mb-4">
+              Account Details
+            </h2>
+            <div className="bg-white p-6 rounded-xl shadow-md max-w-lg">
+              <p className="mb-2">
+                <span className="font-semibold">Email:</span> {user.email}
+              </p>
+              <button
+                onClick={handleDeleteAccount}
+                className="mt-4 text-red-600 underline"
+              >
+                Delete Account
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "hosting" && (
+          <div>
+            <h2 className="text-2xl font-bold text-[#007a8d] mb-6">
+              Hosting Workflow
+            </h2>
+
+            <div className="bg-gradient-to-r from-[#fff1d0] via-[#ffe0e6] to-[#e0f7ff] rounded-2xl p-6 shadow-md">
+              <div className="flex flex-col md:flex-row justify-around items-center text-center gap-6 font-bold text-gray-700">
+                <div>
+                  STEP 1
+                  <br />
+                  LOGIN & VERIFY AS HOST
+                </div>
+                <div>
+                  STEP 2
+                  <br />
+                  HOST TRIP ON FLEEHY
+                </div>
+                <div>
+                  STEP 3
+                  <br />
+                  USER FINDS THE TRIP
+                </div>
+              </div>
+              <div className="text-center mt-6">
+                <button
+                  onClick={() => router.push("/host/verify")}
+                  className="bg-[#007a8d] text-white px-6 py-2 rounded-lg hover:bg-[#006874]"
+                >
+                  Verify to Become a Host
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
