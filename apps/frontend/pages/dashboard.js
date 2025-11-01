@@ -55,7 +55,7 @@ export default function Dashboard() {
               activeTab === "hosting" ? "bg-[#e0f7ff]" : "hover:bg-gray-100"
             }`}
           >
-            Hosting Dashboard
+            Host A Trip
           </button>
           <button
             onClick={async () => {
