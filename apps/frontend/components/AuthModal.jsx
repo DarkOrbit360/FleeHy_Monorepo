@@ -2,38 +2,41 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function AuthModal({ onClose, mode = "login" }) {
+export default function AuthModal({ onClose }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState("login"); // or 'signup'
+  const [mode, setMode] = useState("login"); // "login" or "signup"
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState("");
 
   const handleAuth = async () => {
     setError(null);
-    let res;
-    if (mode === "login") {
-      res = await supabase.auth.signInWithPassword({ email, password });
-    } else {
-      res = await supabase.auth.signUp({ email, password });
-    }
-    if (res.error) setError(res.error.message);
-    else onClose(); // close modal if successful
-  };
+    setMessage("");
 
-  const handleOAuth = async (provider) => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider });
-    if (error) setError(error.message);
+    if (mode === "login") {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) setError(error.message);
+      else {
+        setMessage("Login successful!");
+        onClose();
+      }
+    } else {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) setError(error.message);
+      else setMessage("Signup successful! Please log in.");
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-6 w-96 shadow-lg">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-6 w-96 shadow-xl">
         <h2 className="text-xl font-semibold mb-4 text-center">
-          {mode === "login" ? "Login to FleeHy" : "Sign Up for FleeHy"}
+          {mode === "login" ? "Login to FleeHy" : "Create your FleeHy Account"}
         </h2>
+
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full p-2 mb-2 border rounded"
@@ -45,47 +48,34 @@ export default function AuthModal({ onClose, mode = "login" }) {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full p-2 mb-3 border rounded"
         />
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+
+        {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
+        {message && <p className="text-green-600 text-sm mb-2">{message}</p>}
 
         <button
           onClick={handleAuth}
-          className="w-full bg-blue-600 text-white p-2 rounded mb-3 hover:bg-blue-700"
+          className="w-full bg-[#007a8d] text-white p-2 rounded-lg hover:bg-[#006874]"
         >
-          {mode === "login" ? "Login" : "Register"}
+          {mode === "login" ? "Login" : "Sign Up"}
         </button>
 
-        <div className="flex justify-center gap-3 mb-3">
-          <button
-            onClick={() => handleOAuth("google")}
-            className="border px-3 py-1 rounded hover:bg-gray-100"
-          >
-            Google
-          </button>
-          <button
-            onClick={() => handleOAuth("apple")}
-            className="border px-3 py-1 rounded hover:bg-gray-100"
-          >
-            Apple
-          </button>
-        </div>
-
-        <p className="text-center text-sm">
+        <p className="text-center text-sm mt-4">
           {mode === "login" ? (
             <>
-              Not a user?{" "}
+              Don’t have an account?{" "}
               <button
                 onClick={() => setMode("signup")}
-                className="text-blue-600 hover:underline"
+                className="text-[#007a8d] hover:underline"
               >
-                Register here
+                Register
               </button>
             </>
           ) : (
             <>
-              Already have an account?{" "}
+              Already a user?{" "}
               <button
                 onClick={() => setMode("login")}
-                className="text-blue-600 hover:underline"
+                className="text-[#007a8d] hover:underline"
               >
                 Login
               </button>
